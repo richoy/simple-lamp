@@ -8,7 +8,12 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./www:/usr/local/apache2/htdocs:cached
+      - ./www:/usr/local/apache2/htdocs
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       - php
       - mysql
@@ -20,7 +25,12 @@ services:
     build: ./php
     container_name: lamp_php
     volumes:
-      - ./www:/usr/local/apache2/htdocs:cached
+      - ./www:/usr/local/apache2/htdocs
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - lamp_network
 
@@ -37,8 +47,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql:cached
-      - ./mysql:/docker-entrypoint-initdb.d:cached
+      - mysql_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
     networks:
       - lamp_network
 

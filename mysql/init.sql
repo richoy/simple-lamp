@@ -1,32 +1,25 @@
--- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS lamp_db;
-USE lamp_db;
+CREATE DATABASE IF NOT EXISTS hospital;
+USE hospital;
 
--- Create a sample table
-CREATE TABLE IF NOT EXISTS posts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    author VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS medicos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    documento VARCHAR(20) NOT NULL UNIQUE,
+    nombre VARCHAR(100) NOT NULL,
+    especialidad VARCHAR(100) NOT NULL
 );
 
--- Insert sample data
-INSERT INTO posts (title, content, author) VALUES
-('Welcome to LAMP Stack', 'This is your first post in the LAMP stack setup.', 'Admin'),
-('Docker Compose Benefits', 'Using Docker Compose makes development environment setup incredibly easy.', 'Developer'),
-('Database Connection Test', 'If you can see this, your MySQL connection is working perfectly!', 'System');
-
--- Create additional sample tables
-CREATE TABLE IF NOT EXISTS categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS registros (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    medico_id INT NOT NULL,
+    tipo VARCHAR(10) NOT NULL, -- 'ENTRADA' o 'SALIDA'
+    FOREIGN KEY (medico_id) REFERENCES medicos(id)
 );
 
-INSERT INTO categories (name, description) VALUES
-('Technology', 'Posts about technology and programming'),
-('Tutorial', 'Step-by-step guides and tutorials'),
-('News', 'Latest news and updates');
+-- Insertar 5 médicos de ejemplo
+INSERT INTO medicos (documento, nombre, especialidad) VALUES
+('101001', 'Dra. Elena Rostova', 'Cardiologia'),
+('101002', 'Dr. Carlos Mendoza', 'Pediatria'),
+('101003', 'Dra. Sofia Ramirez', 'Neurologia'),
+('101004', 'Dr. Juan Pablo Torres', 'Urgencias'),
+('101005', 'Dra. Maria Fernanda Lopez', 'Ginecologia');

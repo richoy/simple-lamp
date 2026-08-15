@@ -1,1 +1,172 @@
-It works
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Acceso Médico</title>
+</head>
+<body>
+    <h1>Control de Ingresos y Salidas - Personal Médico</h1>
+ 
+    <!-- Formulario de Registro de Acceso -->
+    <div id="registroFormContainer">
+        <h2>Registrar Movimiento</h2>
+        <form id="registroForm">
+            <div>
+                <label for="medico">Médico:</label><br>
+                <select id="medico" required>
+                    <option value="">Seleccionar...</option>
+                </select>
+            </div>
+            <br>
+            <div>
+                <label for="tipo">Tipo de Movimiento:</label><br>
+                <select id="tipo" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="ENTRADA">ENTRADA</option>
+                    <option value="SALIDA">SALIDA</option>
+                </select>
+            </div>
+            <br>
+            <button type="submit">Registrar Movimiento</button>
+        </form>
+        <p id="mensaje"></p>
+    </div>
+ 
+    <hr>
+
+    <!-- Historial de Registros -->
+    <div id="historialContainer">
+        <h2>Historial de Accesos</h2>
+        <table border="1" cellpadding="5">
+            <thead>
+                <tr>
+                    <th>Fecha / Hora</th>
+                    <th>Médico</th>
+                    <th>Especialidad</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody id="registrosBody">
+                <tr><td colspan="4">Cargando registros...</td></tr>
+            </tbody>
+        </table>
+    </div>
+ 
+    <script>
+    const API_URL = 'api.php';
+    let medicos = [];
+ 
+    // Elementos del DOM
+    const form = document.getElementById('registroForm');
+    const selectMedico = document.getElementById('medico');
+    const selectTipo = document.getElementById('tipo');
+    const mensajeDiv = document.getElementById('mensaje');
+    const registrosBody = document.getElementById('registrosBody');
+ 
+    // Cargar Lista de Médicos
+    async function cargarMedicos() {
+        try {
+            const response = await fetch(`${API_URL}?path=medicos`);
+            medicos = await response.json();
+ 
+            selectMedico.innerHTML = '<option value="">Seleccionar...</option>';
+            medicos.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = `${m.nombre} - ${m.especialidad} (Doc: ${m.documento})`;
+                selectMedico.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar médicos:', error);
+        }
+    }
+ 
+    // Cargar Historial de Movimientos
+    async function cargarRegistros() {
+        try {
+            const response = await fetch(`${API_URL}?path=registros`);
+            const registros = await response.json();
+ 
+            registrosBody.innerHTML = '';
+            if (!Array.isArray(registros) || registros.length === 0) {
+                registrosBody.innerHTML = '<tr><td colspan="4">No hay movimientos registrados</td></tr>';
+                return;
+            }
+ 
+            registros.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(r.fecha).toLocaleDateString()} ${new Date(r.fecha).toLocaleTimeString()}</td>
+                    <td>${r.medico_nombre}</td>
+                    <td>${r.especialidad}</td>
+                    <td>${r.tipo}</td>
+                `;
+                registrosBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error al cargar historial:', error);
+            registrosBody.innerHTML = '<tr><td colspan="4">Error al cargar historial</td></tr>';
+        }
+    }
+ 
+    // Registrar Movimiento (POST)
+    async function registrarMovimiento(medicoId, tipo) {
+        try {
+            const response = await fetch(`${API_URL}?path=registros`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    medico_id: medicoId,
+                    tipo: tipo
+                })
+            });
+ 
+            const data = await response.json();
+ 
+            if (data.success) {
+                mostrarMensaje('Movimiento registrado exitosamente');
+                cargarRegistros();
+                form.reset();
+            } else {
+                mostrarMensaje('Error: ' + (data.error || 'No se pudo guardar el registro'));
+            }
+        } catch (error) {
+            console.error('Error al registrar movimiento:', error);
+            mostrarMensaje('Error de conexión con el servidor');
+        }
+    }
+ 
+    function mostrarMensaje(texto) {
+        mensajeDiv.textContent = texto;
+        setTimeout(() => {
+            mensajeDiv.textContent = '';
+        }, 5000);
+    }
+ 
+    // Eventos
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+ 
+        const medicoId = selectMedico.value;
+        const tipo = selectTipo.value;
+ 
+        if (!medicoId) {
+            mostrarMensaje('Selecciona un médico');
+            return;
+        }
+ 
+        if (!tipo) {
+            mostrarMensaje('Selecciona el tipo de movimiento');
+            return;
+        }
+ 
+        registrarMovimiento(medicoId, tipo);
+    });
+ 
+    // Inicialización
+    cargarMedicos();
+    cargarRegistros();
+    </script>
+</body>
+</html>
